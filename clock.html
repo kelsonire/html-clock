@@ -1,0 +1,123 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Simple Clock</title>
+  <style>
+    @keyframes blink {
+      0% {
+        opacity: 0;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.4;
+      }
+    }
+    #clock {
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 200%;
+    }
+    #clock .time {
+      font-size: 200%;
+    }
+    #clock .time .hours, #clock .time .minutes {
+    }
+    #clock .time .seconds canvas {
+      margin-top: -0.3rem;
+      margin-bottom: 0.4rem;
+    }
+    #clock .time .delimiter {
+      animation: blink 1s ease-out 0s infinite normal both running;
+    }
+    #clock .year {
+      font-size: 60%;
+    }
+    #clock .date {
+    }
+  </style>
+</head>
+<body>
+  <div id="clock">
+    <div class="time">
+      <div class="hour-minute">
+        <span class="hours"></span>
+        <span class="delimiter">:</span>
+        <span class="minutes"></span>
+      </div>
+      <div class="seconds">
+        <canvas width="230px" height="3px"></canvas>
+      </div>
+    </div>
+    <div class="date"></div>
+    <div class="year"></div>
+  </div>
+
+  <script>
+    const convertJapaneseYear = function(year) {
+      if(2019 >= year) {
+        return `令和${year - 2019 + 1}年`;
+      }
+    };
+    const setupDate = function(clock) {
+      const dayOfWeek = ["日","月","火","水","木","金","土","日"];
+
+      let date = new Date();
+
+      let ey = document.querySelector("#clock .year");
+      let year = date.getFullYear();
+      ey.innerText = `${year}年 (${convertJapaneseYear(year)})`;
+
+      let ed = document.querySelector("#clock .date");
+      ed.innerText = `${date.getMonth() + 1}/${date.getDate()} (${dayOfWeek[date.getDay()]})`
+    };
+    const zeroFill = function(number, length) {
+      let str = number.toString();
+      return (str.length >= length) ? str : str.padStart(length, "0");
+    };
+    const updateTime = function(hours, minutes) {
+      let current = new Date();
+      hours.innerText = zeroFill(current.getHours(), 2);
+      minutes.innerText = zeroFill(current.getMinutes(), 2);
+      delete current;
+    };
+    const updateSecondsBar = function(context) {
+      let current = new Date();
+      let ms = current.getMilliseconds() + current.getSeconds() * 1000;
+      let ratio = context.canvas.width / (60 * 1000);
+      context.beginPath();
+      context.fillStyle = "rgb(230, 230, 230)";
+      context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+      context.fillStyle = "rgb(100, 100, 100)";
+      context.fillRect(0, 0, ms * ratio, context.canvas.height);
+      context.closePath();
+      context.stroke();
+      delete current;
+    };
+
+    window.addEventListener("load", () => {
+      let clock = document.getElementById("clock");
+      setupDate(clock);
+
+      let hours = clock.querySelector(".hours");
+      let minutes = clock.querySelector(".minutes");
+      let secondsBarCanvas = clock.querySelector(".seconds canvas");
+      let context = secondsBarCanvas.getContext("2d");
+
+      console.log("Clock Start");
+
+      updateTime(hours, minutes);
+      setInterval(() => {
+        updateTime(hours, minutes);
+      }, 1000);
+      setInterval(() => {
+        updateSecondsBar(context);
+      }, 1000 / 60);
+    })
+  </script>
+</body>
+</html>
